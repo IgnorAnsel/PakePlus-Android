@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>摄像头稳定版</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #1a1a2e;
+            color: #fff;
+        }
+        .container {
+            background: #16213e;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+        video {
+            border-radius: 12px;
+            background: #0f0f23;
+            width: 100%;
+            max-width: 720px;
+            height: auto;
+            display: block;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-start {
+            background: #00d2ff;
+            color: #1a1a2e;
+        }
+        .btn-start:hover {
+            background: #00b8e6;
+            transform: scale(1.02);
+        }
+        .btn-stop {
+            background: #ff6b6b;
+            color: #fff;
+        }
+        .btn-stop:hover {
+            background: #e55a5a;
+            transform: scale(1.02);
+        }
+        .btn-start:disabled, .btn-stop:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 14px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #0f0f23;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .status.success { color: #51cf66; }
+        .status.error { color: #ff6b6b; }
+        .status.idle { color: #868e96; }
+        .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+        .dot.active { background: #51cf66; }
+        .dot.inactive { background: #868e96; animation: none; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+        .hint {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #868e96;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📷 摄像头控制</h2>
+        <video id="video" width="720" height="480" autoplay playsinline></video>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn-start">▶ 开启摄像头</button>
+            <button id="stopBtn" class="btn-stop" disabled>⏹ 关闭摄像头</button>
+        </div>
+        
+        <div id="status" class="status idle">
+            <span class="dot inactive"></span>
+            <span id="statusText">就绪，点击开启</span>
+        </div>
+        <div class="hint">💡 如果画面不显示，请检查浏览器权限设置</div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ===== DOM 引用 =====
+            const video = document.getElementById('video');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const statusDiv = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            const dot = statusDiv.querySelector('.dot');
+
+            // ===== 状态变量 =====
+            let stream = null;          // 当前媒体流
+            let isActive = false;       // 摄像头是否正在运行
+
+            // ===== 辅助函数：更新 UI 状态 =====
+            function setStatus(type, message) {
+                // type: 'idle' | 'success' | 'error'
+                statusDiv.className = 'status ' + type;
+                statusText.textContent = message;
+                
+                if (type === 'success') {
+                    dot.className = 'dot active';
+                } else {
+                    dot.className = 'dot inactive';
+                }
+            }
+
+            function setButtons(active) {
+                // active: true = 摄像头运行中
+                startBtn.disabled = active;
+                stopBtn.disabled = !active;
+            }
+
+            // ===== 核心：开启摄像头 =====
+            async function startCamera() {
+                // 如果已经有流，先关闭
+                if (stream) {
+                    stopCamera();
+                }
+
+                setStatus('idle', '⏳ 正在请求摄像头...');
+                startBtn.disabled = true;
+
+                try {
+                    // 请求摄像头（强制使用后置/前置？这里用默认）
+                    const newStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'environment' // 优先后置；可改为 'user' 前置
+                        },
+                        audio: false
+                    });
+
+                    // 成功获取
+                    stream = newStream;
+                    video.srcObject = stream;
+                    await video.play();  // 确保播放
+
+                    isActive = true;
+                    setStatus('success', '✅ 摄像头已开启');
+                    setButtons(true);
+                    
+                    console.log('📷 摄像头启动成功');
+
+                } catch (err) {
+                    // 错误处理
+                    let errorMsg = '无法访问摄像头';
+                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                        errorMsg = '🚫 用户拒绝了摄像头权限，请在浏览器设置中允许';
+                    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                        errorMsg = '❌ 未检测到摄像头设备，请检查连接';
+                    } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                        errorMsg = '⚠️ 摄像头被其他应用占用，请关闭其他程序';
+                    } else if (err.name === 'OverconstrainedError') {
+                        errorMsg = '📐 摄像头不支持请求的分辨率，已尝试默认设置';
+                        // 降级尝试：用更宽松的约束
+                        try {
+                            const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                            stream = fallbackStream;
+                            video.srcObject = stream;
+                            await video.play();
+                            isActive = true;
+                            setStatus('success', '✅ 摄像头已开启（降级模式）');
+                            setButtons(true);
+                            console.warn('⚠️ 降级启动成功');
+                            return;
+                        } catch (fallbackErr) {
+                            errorMsg = '❌ 降级启动也失败了: ' + fallbackErr.message;
+                        }
+                    }
+                    
+                    setStatus('error', errorMsg);
+                    setButtons(false);
+                    console.error('❌ 摄像头错误:', err);
+
+                } finally {
+                    // 无论如何，启用开始按钮（如果摄像头没启动）
+                    if (!isActive) {
+                        startBtn.disabled = false;
+                    }
+                }
+            }
+
+            // ===== 核心：关闭摄像头 =====
+            function stopCamera() {
+                if (stream) {
+                    // 停止所有轨道
+                    stream.getTracks().forEach(track => {
+                        track.stop();
+                        console.log('🛑 停止轨道:', track.kind, track.label);
+                    });
+                    stream = null;
+                }
+                
+                // 清空视频
+                video.srcObject = null;
+                // 重置 video 元素，避免残留帧
+                video.load();
+                
+                isActive = false;
+                setStatus('idle', '⏹ 摄像头已关闭');
+                setButtons(false);
+                console.log('📷 摄像头已完全释放');
+            }
+
+            // ===== 页面关闭 / 离开时自动释放资源 =====
+            function handlePageUnload() {
+                if (stream) {
+                    stopCamera();
+                }
+            }
+
+            // ===== 事件绑定 =====
+            startBtn.addEventListener('click', startCamera);
+            stopBtn.addEventListener('click', stopCamera);
+
+            // 页面可见性变化：切到后台时建议释放？（可选）
+            // 这里不做自动释放，避免频繁开关，留给用户控制
+
+            // 页面关闭/刷新时释放资源
+            window.addEventListener('beforeunload', handlePageUnload);
+            // 兼容移动端
+            window.addEventListener('pagehide', handlePageUnload);
+
+            // ===== 初始化 UI =====
+            setStatus('idle', '就绪，点击「开启摄像头」');
+            setButtons(false);
+
+            // ===== 额外：自动检测是否有摄像头（不启动） =====
+            async function checkCameraAvailability() {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const cams = devices.filter(d => d.kind === 'videoinput');
+                    if (cams.length === 0) {
+                        setStatus('error', '⚠️ 未检测到任何摄像头设备');
+                    } else {
+                        console.log('📷 可用摄像头:', cams.map(c => c.label || '未命名'));
+                    }
+                } catch (e) {
+                    // 静默失败，不影响主功能
+                    console.log('设备枚举失败:', e);
+                }
+            }
+            // 页面加载后检测（不开启摄像头）
+            if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+                checkCameraAvailability();
+            }
+
+            console.log('🚀 摄像头控制已初始化');
+        })();
+    </script>
+</body>
+</html>
