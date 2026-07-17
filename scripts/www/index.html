@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f26b4f">
+  <meta name="api-base-url" content="https://95d46348241eec.lhr.life">
+  <title>食刻 - 每日饮食记录</title>
+  <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+  <main id="app">
+    <section id="authView" class="auth-view">
+      <div class="brand"><span>✦</span><h1>食刻</h1><p>把每一口喜欢，都记下来</p></div>
+      <form id="authForm" class="card form-card">
+        <h2 id="authTitle">欢迎回来</h2>
+        <label id="nicknameRow" hidden>昵称<input id="nickname" maxlength="30" placeholder="怎么称呼你"></label>
+        <label>邮箱<input id="email" type="email" autocomplete="email" required placeholder="name@example.com"></label>
+        <label>密码<input id="password" type="password" autocomplete="current-password" minlength="6" required placeholder="至少 6 位"></label>
+        <button class="primary" id="authSubmit">登录</button>
+        <button type="button" class="text-button" id="authSwitch">还没有账号？去注册</button>
+      </form>
+    </section>
+
+    <section id="mainView" hidden>
+      <header class="topbar"><div><p class="eyebrow" id="todayText"></p><h1>今天，吃得怎么样？</h1></div><button class="avatar" id="profileButton" aria-label="个人设置">我</button></header>
+      <section id="homePage" class="page active">
+        <div class="section-head calendar-head"><button class="month-button" id="previousMonth" aria-label="上个月">‹</button><h2 id="calendarTitle">饮食日历</h2><button class="month-button" id="nextMonth" aria-label="下个月">›</button></div>
+        <div class="weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div class="section-head selected-day-head"><div><p id="selectedDateText" class="eyebrow"></p><h2>当天饮食</h2></div><button class="text-button" id="recordSelectedDay">＋ 记录</button></div>
+        <div id="dateMeals" class="meal-list"></div>
+      </section>
+
+      <section id="statsPage" class="page">
+        <div class="section-head"><h2>我的食光数据</h2><select id="statsScope"><option value="mine">仅我自己</option><option value="shared">我和绑定用户</option></select></div>
+        <div class="stat-grid"><article class="card"><span>累计记录</span><strong id="statCount">0</strong><small>餐</small></article><article class="card"><span>平均满意度</span><strong id="statRating">--</strong><small>/ 5</small></article><article class="card wide"><span>累计饮食消费</span><strong id="statPrice">¥0</strong></article></div>
+        <section class="card chart-card"><h3>最近 14 天</h3><div id="chart" class="chart"></div><div id="chartLabels" class="chart-labels"></div></section>
+        <section class="card"><h3>常用标签</h3><div id="tagCloud" class="tags empty">还没有标签</div></section>
+        <section><div class="section-head"><h2>高分榜单</h2></div><div id="favorites" class="meal-list"></div></section>
+      </section>
+
+      <section id="partnerPage" class="page">
+        <div class="section-head"><h2>一起吃饭</h2></div><div id="partnerContent"></div>
+      </section>
+
+      <nav class="bottom-nav"><button class="active" data-page="homePage"><span>▣</span>记录</button><button data-page="statsPage"><span>◔</span>数据</button><button data-page="partnerPage"><span>♡</span>一起</button></nav>
+    </section>
+  </main>
+
+  <dialog id="mealDialog"><form id="mealForm" method="dialog" class="dialog-form"><div class="dialog-title"><h2>记录这一餐</h2><button type="button" class="icon-button close-dialog">×</button></div>
+    <label class="photo-upload" id="photoLabel"><input id="mealImage" type="file" accept="image/*" capture="environment"><span id="photoPlaceholder">📷<b>拍照或选择照片</b><small>一张好照片，帮你记住味道</small></span><img id="photoPreview" hidden alt="饮食照片预览"></label>
+    <div class="form-grid"><label>餐次<select id="category"><option value="breakfast">早餐</option><option value="lunch">午餐</option><option value="dinner">晚餐</option><option value="other">其他</option></select></label><label>用餐时间<input id="eatenAt" type="datetime-local" required></label></div>
+    <label>吃了什么<input id="mealTitle" maxlength="80" placeholder="例如：牛肉面、草莓蛋糕"></label><label>餐厅 / 地点<input id="restaurant" maxlength="80" placeholder="例如：公司楼下、自己做"></label>
+    <label>价格（元）<input id="price" type="number" min="0" max="999999" step="0.01" value="0"></label>
+    <fieldset><legend>总体评分 <output id="ratingOutput">5 分</output></legend><input id="rating" type="range" min="1" max="5" value="5"></fieldset>
+    <div class="score-grid"><label>味道<select id="taste"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></label><label>性价比<select id="value"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></label><label>健康度<select id="health"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></label></div>
+    <label>标签（用逗号分隔）<input id="tags" maxlength="160" placeholder="外卖, 值得再吃, 解馋"></label><label>备注<textarea id="note" maxlength="1000" rows="3" placeholder="这顿饭有什么想记住的？"></textarea></label><button class="primary" id="saveMeal">保存记录</button>
+  </form></dialog>
+
+  <dialog id="profileDialog"><div class="dialog-form"><div class="dialog-title"><h2>我的设置</h2><button type="button" class="icon-button close-dialog">×</button></div><div id="profileInfo"></div><label class="switch-row">向绑定用户展示价格<input id="sharePrices" type="checkbox"><span class="switch"></span></label><button class="secondary" id="saveProfile">保存设置</button><button class="danger" id="logout">退出登录</button></div></dialog>
+  <div id="toast" role="status"></div>
+  <script src="app.js?v=3"></script>
+</body>
+</html>
