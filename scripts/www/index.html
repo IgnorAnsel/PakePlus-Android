@@ -4,36 +4,43 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f26b4f">
-  <meta name="api-base-url" content="https://95d46348241eec.lhr.life">
+  <meta name="api-base-url" content="http://124.222.70.220">
+  <meta name="app-version" content="1.0.0">
+  <meta name="app-build" content="1">
   <title>食刻 - 每日饮食记录</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=17">
 </head>
 <body>
   <main id="app">
     <section id="authView" class="auth-view">
-      <div class="brand"><span>✦</span><h1>食刻</h1><p>把每一口喜欢，都记下来</p></div>
-      <form id="authForm" class="card form-card">
+      <div class="brand"><span class="brand-mark"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="18"></circle><circle cx="32" cy="32" r="11"></circle><path d="M32 19v13l8 5"></path><path d="M16 15l4 4M48 15l-4 4"></path></svg></span><p class="brand-kicker">FOOD MOMENTS</p><h1>食刻</h1><p>认真吃饭，也认真收藏生活</p></div>
+      <form id="authForm" class="card form-card" data-mode="login">
         <h2 id="authTitle">欢迎回来</h2>
+        <p class="form-intro" id="authIntro">登录后继续记录你的每一餐</p>
         <label id="nicknameRow" hidden>昵称<input id="nickname" maxlength="30" placeholder="怎么称呼你"></label>
         <label>邮箱<input id="email" type="email" autocomplete="email" required placeholder="name@example.com"></label>
-        <label>密码<input id="password" type="password" autocomplete="current-password" minlength="6" required placeholder="至少 6 位"></label>
+        <label id="verificationRow" hidden>邮箱验证码<div class="code-input-row"><input id="verificationCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="6 位验证码"><button type="button" class="secondary code-button" id="sendCode">获取验证码</button></div></label>
+        <label><span id="passwordLabel">密码</span><input id="password" type="password" autocomplete="current-password" minlength="6" required placeholder="至少 6 位"></label>
         <button class="primary" id="authSubmit">登录</button>
-        <button type="button" class="text-button" id="authSwitch">还没有账号？去注册</button>
+        <div class="auth-links"><button type="button" class="text-button" id="authSwitch">还没有账号？去注册</button><button type="button" class="text-button" id="forgotPassword">忘记密码？</button></div>
       </form>
     </section>
 
     <section id="mainView" hidden>
       <header class="topbar"><div><p class="eyebrow" id="todayText"></p><h1>今天，吃得怎么样？</h1></div><button class="avatar" id="profileButton" aria-label="个人设置">我</button></header>
       <section id="homePage" class="page active">
-        <div class="section-head calendar-head"><button class="month-button" id="previousMonth" aria-label="上个月">‹</button><h2 id="calendarTitle">饮食日历</h2><button class="month-button" id="nextMonth" aria-label="下个月">›</button></div>
-        <div class="weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-        <div id="calendarGrid" class="calendar-grid"></div>
-        <div class="section-head selected-day-head"><div><p id="selectedDateText" class="eyebrow"></p><h2>当天饮食</h2></div><button class="text-button" id="recordSelectedDay">＋ 记录</button></div>
+        <section class="calendar-card">
+          <div class="section-head calendar-head"><button class="month-button" id="previousMonth" aria-label="上个月">‹</button><h2 id="calendarTitle">饮食日历</h2><button class="month-button" id="nextMonth" aria-label="下个月">›</button></div>
+          <div class="weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div id="calendarGrid" class="calendar-grid"></div>
+          <div class="calendar-legend"><span><i class="day-dot breakfast mine"></i>早餐</span><span><i class="day-dot lunch mine"></i>午餐</span><span><i class="day-dot dinner mine"></i>晚餐</span><span><i class="day-dot other mine"></i>其他</span><span class="legend-owner"><i class="day-dot lunch mine"></i>我</span><span><i class="day-dot lunch partner"></i>群友</span></div>
+        </section>
+        <div class="section-head selected-day-head"><div><p id="selectedDateText" class="eyebrow"></p><h2>当天饮食</h2></div><div class="record-actions"><select id="recordScope" aria-label="饮食记录范围"><option value="mine">仅我自己</option></select><button class="text-button" id="recordSelectedDay">＋ 记录</button></div></div>
         <div id="dateMeals" class="meal-list"></div>
       </section>
 
       <section id="statsPage" class="page">
-        <div class="section-head"><h2>我的食光数据</h2><select id="statsScope"><option value="mine">仅我自己</option><option value="shared">我和绑定用户</option></select></div>
+        <div class="section-head"><h2>食光数据</h2><select id="statsScope"><option value="mine">仅我自己</option></select></div>
         <div class="stat-grid"><article class="card"><span>累计记录</span><strong id="statCount">0</strong><small>餐</small></article><article class="card"><span>平均满意度</span><strong id="statRating">--</strong><small>/ 5</small></article><article class="card wide"><span>累计饮食消费</span><strong id="statPrice">¥0</strong></article></div>
         <section class="card chart-card"><h3>最近 14 天</h3><div id="chart" class="chart"></div><div id="chartLabels" class="chart-labels"></div></section>
         <section class="card"><h3>常用标签</h3><div id="tagCloud" class="tags empty">还没有标签</div></section>
@@ -41,15 +48,17 @@
       </section>
 
       <section id="partnerPage" class="page">
-        <div class="section-head"><h2>一起吃饭</h2></div><div id="partnerContent"></div>
+        <div class="section-head"><h2>群组与聊天</h2></div><div id="partnerContent"></div>
       </section>
 
-      <nav class="bottom-nav"><button class="active" data-page="homePage"><span>▣</span>记录</button><button data-page="statsPage"><span>◔</span>数据</button><button data-page="partnerPage"><span>♡</span>一起</button></nav>
+      <nav class="bottom-nav"><button class="active" data-page="homePage"><i class="nav-badge" id="recordUnreadBadge" hidden></i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"></path></svg><span>记录</span></button><button data-page="statsPage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10h3v10zm6 0V4h3v16zm6 0v-7h3v7z"></path></svg><span>数据</span></button><button data-page="partnerPage"><i class="nav-badge" id="chatUnreadBadge" hidden></i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-8-4.6-8-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.4-8 10-8 10z"></path></svg><span>一起</span></button></nav>
     </section>
   </main>
 
-  <dialog id="mealDialog"><form id="mealForm" method="dialog" class="dialog-form"><div class="dialog-title"><h2>记录这一餐</h2><button type="button" class="icon-button close-dialog">×</button></div>
-    <label class="photo-upload" id="photoLabel"><input id="mealImage" type="file" accept="image/*" capture="environment"><span id="photoPlaceholder">📷<b>拍照或选择照片</b><small>一张好照片，帮你记住味道</small></span><img id="photoPreview" hidden alt="饮食照片预览"></label>
+  <dialog id="mealDialog"><form id="mealForm" method="dialog" class="dialog-form"><div class="dialog-title"><h2 id="mealDialogTitle">记录这一餐</h2><button type="button" class="icon-button close-dialog">×</button></div>
+    <label class="photo-upload multi-photo-upload" id="photoLabel"><input id="mealImage" type="file" accept="image/*" multiple><span id="photoPlaceholder">📷<b>拍照或选择照片</b><small>最多 6 张，可继续添加</small></span></label>
+    <div class="meal-photo-editor" id="mealPhotoGrid" hidden></div>
+    <button type="button" class="text-button remove-photo" id="removeMealImage" hidden>移除全部照片</button>
     <div class="form-grid"><label>餐次<select id="category"><option value="breakfast">早餐</option><option value="lunch">午餐</option><option value="dinner">晚餐</option><option value="other">其他</option></select></label><label>用餐时间<input id="eatenAt" type="datetime-local" required></label></div>
     <label>吃了什么<input id="mealTitle" maxlength="80" placeholder="例如：牛肉面、草莓蛋糕"></label><label>餐厅 / 地点<input id="restaurant" maxlength="80" placeholder="例如：公司楼下、自己做"></label>
     <label>价格（元）<input id="price" type="number" min="0" max="999999" step="0.01" value="0"></label>
@@ -58,8 +67,12 @@
     <label>标签（用逗号分隔）<input id="tags" maxlength="160" placeholder="外卖, 值得再吃, 解馋"></label><label>备注<textarea id="note" maxlength="1000" rows="3" placeholder="这顿饭有什么想记住的？"></textarea></label><button class="primary" id="saveMeal">保存记录</button>
   </form></dialog>
 
-  <dialog id="profileDialog"><div class="dialog-form"><div class="dialog-title"><h2>我的设置</h2><button type="button" class="icon-button close-dialog">×</button></div><div id="profileInfo"></div><label class="switch-row">向绑定用户展示价格<input id="sharePrices" type="checkbox"><span class="switch"></span></label><button class="secondary" id="saveProfile">保存设置</button><button class="danger" id="logout">退出登录</button></div></dialog>
+  <dialog id="mealDetailDialog"><div class="dialog-form detail-dialog"><div class="dialog-title"><h2>饮食详情</h2><button type="button" class="icon-button close-dialog">×</button></div><div id="mealDetailContent"></div></div></dialog>
+  <dialog id="imageViewerDialog" class="image-viewer-dialog"><div class="image-viewer"><div class="image-viewer-head"><span id="imageViewerCount"></span><button type="button" class="icon-button close-dialog" aria-label="关闭大图">×</button></div><button type="button" class="image-nav previous" id="imagePrevious" aria-label="上一张">‹</button><img id="imageViewerImage" alt="大图预览"><button type="button" class="image-nav next" id="imageNext" aria-label="下一张">›</button></div></dialog>
+
+  <dialog id="profileDialog"><div class="dialog-form"><div class="dialog-title"><h2>我的设置</h2><button type="button" class="icon-button close-dialog">×</button></div><div id="profileInfo"></div><label class="avatar-upload"><input id="avatarImage" type="file" accept="image/*"><span id="avatarPreview" class="profile-avatar"></span><span><b>设置头像</b><small>点击选择照片，自动压缩上传</small></span></label><label class="switch-row">向群组成员展示价格<input id="sharePrices" type="checkbox"><span class="switch"></span></label><div class="version-row"><span><b>应用版本</b><small id="currentVersion">v1.0.0</small></span><button type="button" class="secondary compact-button" id="checkUpdate">检查更新</button></div><button class="secondary" id="saveProfile">保存设置</button><button class="danger" id="logout">退出登录</button></div></dialog>
+  <dialog id="updateDialog"><div class="dialog-form update-dialog"><div class="dialog-title"><div><p class="eyebrow">发现新版本</p><h2 id="updateTitle">食刻 v1.0.0</h2></div><button type="button" class="icon-button close-dialog" aria-label="关闭">×</button></div><div class="update-mark" aria-hidden="true">↓</div><p class="update-versions" id="updateVersions"></p><div class="update-notes" id="updateNotes"></div><p class="update-status" id="updateStatus"></p><div class="update-actions"><button type="button" class="secondary" id="updateLater">稍后更新</button><a class="primary" id="updateDownload" target="_blank" rel="noopener">立即更新</a></div></div></dialog>
   <div id="toast" role="status"></div>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=24"></script>
 </body>
 </html>
